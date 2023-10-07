@@ -1,0 +1,22 @@
+<launch>
+
+    <!-- Map server -->
+    <include file="$(find navigation)/launch/map.launch" />
+
+    <!-- Lidar -->
+    <include file="$(find navigation)/launch/lidar.launch" />
+
+    <!-- Start the robot -->
+    <include file="$(find roborts_bringup)/launch/base.launch" />
+
+    <!-- Run location algorithm -->
+    <include file="$(find navigation)/launch/amcl.launch" />
+
+    <!-- Run path planning algorithm -->
+    <include file="$(find navigation)/launch/planning.launch" />
+
+    <!-- Show Rviz -->
+    <node name="rviz" pkg="rviz" type="rviz"
+     args="-d $(find navigation)/configs/nav.rviz" />
+
+</launch>
