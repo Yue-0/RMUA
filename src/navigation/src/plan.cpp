@@ -13,11 +13,12 @@
 
 #include "navigation/plan.h"
 #include "navigation/Position.h"
+#include "navigation/Positions.h"
 
 #define DX 25
 #define DELTA 30
 #define SCALE 1e-2
-#define EXPANSION 33
+#define EXPANSION 35
 #define INF 0xFFFFFFF
 #define pow2(n) (n)*(n)
 #define INIT ros::init(argc, argv, "plan")
@@ -28,14 +29,17 @@
 #define Map nav_msgs::OccupancyGrid
 #define Laser sensor_msgs::LaserScan
 #define Position navigation::Position
+#define Positions navigation::Positions
 #define IntMatrix std::vector<std::vector<int>>
 
+int self;
 Map cost;
 cv::Mat MAP, map;
 cv::Point3f goal;
 Position position;
+Positions positions;
 tf::StampedTransform transform;
-bool planning = false, init = false;
+bool planning = false, init = false, pub = false;
 
 class Node
 {
@@ -151,7 +155,6 @@ IntMatrix graph(const cv::Mat& map, const Points& points)
 Points dijkstra(const IntMatrix& g, const Points& points)
 {
     int n = g.size();
-    if(!n) return Points();
     std::vector<int> dist(n, INF);
     std::vector<int> parent(n, -1);
     std::vector<bool> visited(n, false);
@@ -189,17 +192,19 @@ Points dijkstra(const IntMatrix& g, const Points& points)
 Points as(const cv::Mat& map, Point start, Point end)
 {
     Points path = keypoint(a(map, start, end));
-    return dijkstra(graph(map, path), path);
+    return path.size()? dijkstra(graph(map, path), path): path;
 }
 
 bool srv(navigation::plan::Request& req, navigation::plan::Response& res)
 {
-    if(planning = req.x + req.y > 0)
+    if(planning = req.x + req.y)
     {
         goal.x = req.x;
         goal.y = req.y;
         goal.z = req.yaw;
     }
+    else
+        pub = true;
     return res.result = true;
 }
 
@@ -208,6 +213,7 @@ Path plan(const cv::Mat& map, Point start, cv::Point3f end)
     Path path;
     path.header.frame_id = "map";
     path.header.stamp = ros::Time::now();
+    if(!map.at<uchar>(end.y, end.x)) return path;
     for(Point point: as(map, start, Point(end.x, end.y)))
     {
         geometry_msgs::PoseStamped pose;
@@ -217,6 +223,12 @@ Path plan(const cv::Mat& map, Point start, cv::Point3f end)
         pose.header.frame_id = path.header.frame_id;
         path.poses.push_back(pose);
     }
+    if(!path.poses.size())
+    {
+        self++;
+        return path;
+    }
+    self = 5;
     geometry_msgs::Pose pose2, pose1 = path.poses[0].pose;
     for(int p = 1; p < path.poses.size(); p++)
     {
@@ -227,9 +239,10 @@ Path plan(const cv::Mat& map, Point start, cv::Point3f end)
                 pose2.position.x - pose1.position.x
             )
         );
-        pose1 = pose2;
+        path.poses[p - 1].pose = pose1; pose1 = pose2;
     }
     pose2.orientation = tf::createQuaternionMsgFromYaw(end.z);
+    path.poses[path.poses.size() - 1].pose = pose2;
     return path;
 }
 
@@ -252,10 +265,27 @@ void scan(Laser::ConstPtr laser)
             ), Point(
                 x0 + EXPANSION, y0 + EXPANSION
             ), 0, -1);
+            // cv::circle(map, Point(x0, y0), EXPANSION, 0, -1);
         }
         angle += laser->angle_increment;
     }
-    cv::circle(map, Point(position.x, position.y), 1, 0xFF, -1);
+    for(short i = 0; i < positions.len; i++)
+    {
+        if(positions.id[i] == position.id)
+            continue;
+        cv::rectangle(map, Point(
+            positions.x[i] - 2 * EXPANSION,
+            positions.y[i] - 2 * EXPANSION
+        ), Point(
+            positions.x[i] + 2 * EXPANSION,
+            positions.y[i] + 2 * EXPANSION
+        ), 0, -1);
+    }
+    // cv::rectangle(
+    //     map, Point(position.x - 5, position.y - 5), 
+    //     Point(position.x + 5, position.y + 5), 0xFF, -1
+    // );
+    cv::circle(map, Point(position.x, position.y), self, 0xFF, -1);
     for(int y = 0; y < map.rows; y++)
         for(int x = 0; x < map.cols; x++)
             cost.data[y * cost.info.width + x] = map.at<uchar>(y, x)? 0: 100;
@@ -264,6 +294,11 @@ void scan(Laser::ConstPtr laser)
 void locate(Position::ConstPtr pos)
 {
     position = *pos;
+}
+
+void sentry(Positions::ConstPtr pos)
+{
+    positions = *pos;
 }
 
 void initinalize(Map::ConstPtr map)
@@ -276,6 +311,7 @@ void initinalize(Map::ConstPtr map)
     cv::erode(0xFF * image, MAP, cv::getStructuringElement(
         cv::MORPH_RECT, cv::Size(EXPANSION, EXPANSION)
     ));
+    self = 5;
     cost = *map;
     init = true;
 }
@@ -285,18 +321,22 @@ int main(int argc, char* argv[])
     INIT;
     ros::Time::init();
     ros::NodeHandle nh;
-    ros::Rate sleeper(1);
+    ros::Rate sleeper(100);
     tf::TransformListener listener;
     ros::Publisher planner = nh.advertise<Path>("path", 1);
     ros::Publisher costmap = nh.advertise<Map>("costmap", 1);
     ros::ServiceServer _0 = nh.advertiseService("plan", srv);
     ros::Subscriber _1 = nh.subscribe<Laser>("scan", 1, scan);
     ros::Subscriber _2 = nh.subscribe<Map>("map", 1, initinalize);
-    ros::Subscriber _3 = nh.subscribe<Position>("position", 1, locate);
-    listener.waitForTransform("map", "laser", ros::Time(0), ros::Duration(10));
+    ros::Subscriber _3 = nh.subscribe<Positions>("sentry", 1, sentry);
+    ros::Subscriber _4 = nh.subscribe<Position>("position", 1, locate);
+    // listener.waitForTransform("map", "laser", ros::Time(0), ros::Duration(10));
+    listener.waitForTransform("map", "link_laser", ros::Time(0), ros::Duration(10));
+    ros::Duration(10).sleep();
     while(ros::ok())
     {
-        listener.lookupTransform("map", "laser", ros::Time(0), transform);
+        // listener.lookupTransform("map", "laser", ros::Time(0), transform);
+        listener.lookupTransform("map", "link_laser", ros::Time(0), transform);
         ros::spinOnce();
         if(init)
         {
@@ -306,7 +346,15 @@ int main(int argc, char* argv[])
                 if(std::max(std::abs(x - goal.x), std::abs(y - goal.y)) > DELTA)
                     planner.publish(plan(map, Point(x, y), goal));
                 else
-                    planning = false;
+                    planning = !(pub = true);
+            }
+            if(pub)
+            {
+                Path path;
+                pub = false;
+                path.header.frame_id = "map";
+                path.header.stamp = ros::Time::now();
+                planner.publish(path);
             }
             cost.header.stamp = ros::Time::now();
             costmap.publish(cost);

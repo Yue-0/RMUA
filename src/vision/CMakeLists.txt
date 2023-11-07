@@ -4,12 +4,12 @@ project(vision)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
+# Find catkin macros and libraries
+# if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+# is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
-  roscpp
+  decision
   std_msgs
   sensor_msgs
   roborts_msgs
@@ -159,8 +159,8 @@ include_directories(
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
+# Mark executable scripts (Python etc.) for installation
+# in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/gimbal.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

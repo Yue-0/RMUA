@@ -4,27 +4,23 @@ project(navigation)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
+# Find catkin macros and libraries
+# if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+# is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   tf
+  rospy
   roscpp
+  decision
   std_msgs
-  std_srvs
   nav_msgs
   sensor_msgs
-  roborts_msgs
   geometry_msgs
-  actionlib_msgs
   message_generation
 )
+
+# System dependencies are found with CMake's conventions
 find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
-
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -55,13 +51,14 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-## Generate messages in the 'msg' folder
+# Generate messages in the 'msg' folder
 add_message_files(
   FILES
   Position.msg
+  Positions.msg
 )
 
-## Generate services in the 'srv' folder
+# Generate services in the 'srv' folder
 add_service_files(
   FILES
   plan.srv
@@ -74,7 +71,7 @@ add_service_files(
 #   Action2.action
 # )
 
-## Generate added messages and services with any dependencies listed here
+# Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
   std_msgs
@@ -120,11 +117,14 @@ catkin_package(
 ## Build ##
 ###########
 
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
+# Specify additional locations of header files
+# Your package locations should be listed before other locations
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+)
+include_directories(
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -137,16 +137,13 @@ include_directories(
 ## either from message generation or dynamic reconfigure
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Declare a C++ executable
-## With catkin_make all packages are built within a single CMake context
-## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/navigation_node.cpp)
-add_executable(nav src/nav.cpp)
+# Declare a C++ executable
+# With catkin_make all packages are built within a single CMake context
+# The recommended prefix ensures that target names across packages don't collide
 add_executable(vel src/vel.cpp)
-add_executable(loop src/loop.cpp)
 add_executable(plan src/plan.cpp)
+add_executable(lidar src/lidar.cpp)
 add_executable(position src/position.cpp)
-add_executable(lidar_filter src/lidar_filter.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -158,24 +155,18 @@ add_executable(lidar_filter src/lidar_filter.cpp)
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Specify libraries to link a library or executable target against
-target_link_libraries(nav
-  ${catkin_LIBRARIES}
-)
+# Specify libraries to link a library or executable target against
 target_link_libraries(vel
-  ${catkin_LIBRARIES}
-)
-target_link_libraries(loop
   ${catkin_LIBRARIES}
 )
 target_link_libraries(plan
   ${OpenCV_LIBS}
   ${catkin_LIBRARIES}
 )
-target_link_libraries(position
+target_link_libraries(lidar
   ${catkin_LIBRARIES}
 )
-target_link_libraries(lidar_filter
+target_link_libraries(position
   ${catkin_LIBRARIES}
 )
 
@@ -186,12 +177,16 @@ target_link_libraries(lidar_filter
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
-# catkin_install_python(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+# Mark executable scripts (Python etc.) for installation
+# in contrast to setup.py, you can choose the destination
+catkin_install_python(PROGRAMS
+  scripts/rviz.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+catkin_install_python(PROGRAMS
+  scripts/sentry.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

@@ -17,6 +17,7 @@
 
     <!-- Show Rviz -->
     <node name="rviz" pkg="rviz" type="rviz"
-     args="-d $(find navigation)/configs/nav.rviz" />
+     args="-d $(find navigation)/rviz/rviz.rviz" />
+    <node name="ctrl" pkg="navigation" type="rviz.py" />
 
 </launch>

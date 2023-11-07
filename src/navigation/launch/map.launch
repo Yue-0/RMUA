@@ -1,4 +1,4 @@
 <launch>
     <node name="map_server" pkg="map_server" type="map_server"
-     args="$(find navigation)/map/map.yaml" />
+          args="$(find navigation)/map/map.yaml" />
 </launch>

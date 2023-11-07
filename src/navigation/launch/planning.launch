@@ -1,13 +1,5 @@
 <launch>
-    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
-        <remap from="cmd_vel" to="vel" />
-        <rosparam file="$(find navigation)/configs/costmap.yaml" command="load" ns="global_costmap" />
-        <rosparam file="$(find navigation)/configs/costmap.yaml" command="load" ns="local_costmap" />
-        <rosparam file="$(find navigation)/configs/local.yaml" command="load" />
-        <rosparam file="$(find navigation)/configs/global.yaml" command="load" />
-        <rosparam file="$(find navigation)/configs/planner.yaml" command="load" />
-    </node>
-    <node name="nav" pkg="navigation" type="nav" />
-    <node name="loop" pkg="navigation" type="loop" />
-    <node name="position" pkg="navigation" type="position" />
+    <node name="velocity" pkg="navigation" type="vel" output="screen" />
+    <node name="planning" pkg="navigation" type="plan" output="screen" />
+    <node name="position" pkg="navigation" type="position" output="screen" />
 </launch>

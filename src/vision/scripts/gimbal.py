@@ -1,6 +1,5 @@
 import time
 from os import path
-from sys import argv
 
 import tf
 import cv2
@@ -12,11 +11,10 @@ from cv_bridge import CvBridge
 from torchvision.ops import nms
 from onnxruntime import InferenceSession as OnnxModel
 
-from std_msgs.msg import Int8
+import decision.srv as rid
 from sensor_msgs.msg import Image
 from roborts_msgs.msg import GimbalAngle
-from roborts_msgs.srv import ShootCmd, FricWhl, GimbalMode
-
+from roborts_msgs.srv import ShootCmd, FricWhl
 
 __author__ = "YueLin"
 
@@ -123,6 +121,7 @@ class Gimbal:
         self.dt = 3e-2
         self.fire = 0
         self.pitch = 0
+        self.color = 0
         self.camera = D435()
         rospy.init_node("gimbal")
         self.tf = tf.TransformListener()
@@ -130,14 +129,10 @@ class Gimbal:
         self.detector = Detector("YOLOv6.onnx", "cuda")
         self.shoot = rospy.ServiceProxy("cmd_shoot", ShootCmd)
         self.wheel = rospy.ServiceProxy("cmd_fric_wheel", FricWhl)
-        self.mode = rospy.ServiceProxy("set_gimbal_mode", GimbalMode)
-        for service in ("cmd_shoot", "cmd_fric_wheel", "set_gimbal_mode"):
+        for service in ("cmd_shoot", "cmd_fric_wheel", "robot_id"):
             rospy.wait_for_service(service)
         self.show = rospy.Publisher(
             "frame", Image, queue_size=1
-        )
-        self.wait = rospy.Publisher(
-            "no_enemy_time", Int8, queue_size=1
         )
         self.gimbal = rospy.Publisher(
             "cmd_gimbal_angle", GimbalAngle, queue_size=1
@@ -185,13 +180,12 @@ class Gimbal:
         if self.fire == 1:
             self.shoot(True, number)
         self.show.publish(self.img2msg(image, "bgr8"))
-        (t := Int8()).data = int(self.t * self.dt)
-        self.wait.publish(t)
 
-    def start(self, color: int) -> None:
-        self.mode(2)
+    def start(self) -> None:
         self.wheel(True)
-        color = int(not color)
+        color = RED if rospy.ServiceProxy("robot_id", rid.RobotID).call(
+            rid.RobotIDRequest(False, True)
+        ).id == BLUE else BLUE
         while not rospy.is_shutdown():
             t = time.time()
             self.run(color)
@@ -226,4 +220,4 @@ class Gimbal:
         return bboxes[np.argmax(scores)].tolist() if bboxes.shape[0] else []
 
 
-Gimbal().start(eval(argv[1].upper()))
+Gimbal().start()
