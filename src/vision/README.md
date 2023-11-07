@@ -25,7 +25,7 @@ vision
 
 This package is not fully implemented yet.
 
-## 3.1 Armor plate detection
+### 3.1 Armor plate detection
 
 By lightweigting [YOLOv6](https://github.com/meituan/yolv6) to achieve fast armor plate detection. The number of parameters of the lightweight model is only 0.55M. When the input image size is 320 x 320, the FLOPS is only 0.56G. The single-image inference time on a computer equipped with a [Geforce RTX 2060](https://nvidia.cn/geforce/graphics-cards/rtx-2060) only takes 4ms.
 
