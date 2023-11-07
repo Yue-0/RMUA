@@ -14,11 +14,11 @@ All codes in this project run on Ubuntu20.04 and rely on [ROS-noetic](http://wik
 
 ## 2.Structure
 
-| Package name             | Function                   |
-|:------------------------:|:--------------------------:|
-| [decision](decision)     | Robt decision              |
-| [navigation](navigation) | Navigation and positioning |
-| [vision](vision)         | Visual identity            |
+| Package name                 | Function                   |
+|:----------------------------:|:--------------------------:|
+| [decision](src/decision)     | Robt decision              |
+| [navigation](src/navigation) | Navigation and positioning |
+| [vision](src/vision)         | Visual identity            |
 
 For the specific structure, functions and principles of any packages, please refer to the README file inside the package.
 

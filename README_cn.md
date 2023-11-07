@@ -14,11 +14,11 @@
 
 ## 2.结构
 
-| 功能包名称                | 功能       |
-|:------------------------:|:---------:|
-| [decision](decision)     | 机器人决策 |
-| [navigation](navigation) | 导航和定位 |
-| [vision](vision)         | 视觉识别   |
+| 功能包名称                    | 功能       |
+|:----------------------------:|:---------:|
+| [decision](src/decision)     | 机器人决策 |
+| [navigation](src/navigation) | 导航和定位 |
+| [vision](src/vision)         | 视觉识别   |
 
 功能包的具体结构、功能和原理请参考功能包内部的README文件。
 
