@@ -29,6 +29,8 @@ vision
 
 通过对 [YOLOv6](https://github.com/meituan/yolv6) 进行轻量化以实现快速的装甲板目标检测。网络的参数量仅 0.55M，输入图像尺寸为 320 x 320，FLOPS 仅 0.56G，在配备一块 [Geforce RTX 2060 显卡](https://nvidia.cn/geforce/graphics-cards/rtx-2060)的机载电脑上的单图推理时间只需 4ms。
 
+![装甲板检测](../../images/vision/detection.gif)
+
 ### 3.2 瞄准与击打
 
 使用斜抛运动数学模型进行云台 yaw 角和 pitch 角的解算，从而实现机器人对敌方的瞄准与击打，详见[技术文档](../../images/vision/doc/shoot_cn.md)。
