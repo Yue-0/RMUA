@@ -4,7 +4,7 @@ __English__ | [简体中文](README_cn.md)
 
 ## 1.Introducion
 
-This package is robot visual recognition package that provides armor plate detection and shooting functions.
+This package is the sentry communication package, which defines the custom topics and services of this project.
 
 ## 2.Structure
 

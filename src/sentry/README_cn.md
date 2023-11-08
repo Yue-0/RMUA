@@ -4,7 +4,7 @@
 
 ## 1.介绍
 
-This package is the sentry communication package, which defines the custom topics and services of this project.
+本功能包为哨岗通信功能包，包含本项目所有自定义话题和服务。
 
 ## 2.结构
 
