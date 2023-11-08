@@ -74,12 +74,11 @@ navigation
 
 ### 发布的话题
 
-| 话题名称   | 节点名称   | 消息类型                | 说明                          |
-|:---------:|:--------:|:----------------------:|:-----------------------------|
+| 话题名称   | 节点名称  | 消息类型               | 说明                           |
+|:---------:|:--------:|:----------------------:|:------------------------------|
 | /scan     | lidar    | sensor_msgs/LaserScan  | 过滤后的雷达数据                |
 | /path     | plan     | nav_msgs/Path          | 路径规划结果                   |
-| /sentry   | sentry   | sentry/Positions       | 来自哨岗的全场机器人信息         |
-| /cmd_vel  | vel      | geometry_msgs/Twist    | 控制机器人底盘的速度             |
+| /cmd_vel  | vel      | geometry_msgs/Twist    | 控制机器人底盘的速度            |
 | /costmap  | plan     | nav_msgs/OccupancyGrid | 代价地图                       |
 | /position | position | sentry/Position        | 来自 AMCL 和 RobotID 的自身信息 |
 

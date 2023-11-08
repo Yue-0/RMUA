@@ -78,7 +78,6 @@ The following table only lists the topics and services of the nodes implemented 
 |:---------:|:--------:|:----------------------:|:------------------------------------------|
 | /scan     | lidar    | sensor_msgs/LaserScan  | Filtered lidar data                       |
 | /path     | plan     | nav_msgs/Path          | Path planning result                      |
-| /sentry   | sentry   | sentry/Positions       | Full field robots information from sentry |
 | /cmd_vel  | vel      | geometry_msgs/Twist    | Control the velocity of the robot         |
 | /costmap  | plan     | nav_msgs/OccupancyGrid | Cost map                                  |
 | /position | position | sentry/Position        | Robot information from AMCL and RobotID   |

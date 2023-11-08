@@ -29,11 +29,18 @@ This package is not fully implemented yet.
 
 ## 4.Topics and services
 
+### Subscribed topics
+
+| Topic     | Node     | Message         | Note                 |
+|:---------:|:--------:|:---------------:|:---------------------|
+| /position | sentry   | sentry/Position | Robot's information. |
+
 ### Published topics
 
-| Topic    | Node      | Message             | Note                               |
-|:--------:|:---------:|:-------------------:|:-----------------------------------|
-| /cmd_vel | gyroscope | geometry_msgs/Twist | Control the velocity of the robot. |
+| Topic    | Node      | Message             | Note                                       |
+|:--------:|:---------:|:-------------------:|:-------------------------------------------|
+| /sentry  | sentry    | sentry/Positions    | Full field robots information from sentry. |
+| /cmd_vel | gyroscope | geometry_msgs/Twist | Control the velocity of the robot.         |
 
 ### Provided services
 
