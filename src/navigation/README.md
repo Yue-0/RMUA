@@ -22,7 +22,7 @@ navigation
 ├── rviz
     └── rviz.rviz          # Configuration file for rviz
 ├── scripts
-    └── sentry.py          # Sentry communicate node
+    └── mouse.py           # Mouse control node, will be deprecated soon
 ├── src
     ├── as.hpp             # A* algorithm
     ├── lidar.cpp          # Lidar filter node
@@ -58,7 +58,7 @@ Since the robot chassis has the ability to move in all directions, the omnidirec
 
 ## 4.Topics and services
 
-The following table only lists the topics and services of the nodes implemented by this project.
+The following table only lists the topics and services of the nodes implemented by this project, excluding the ctrl node ,because this node will be deprecated.
 
 ### Subscribed topics
 
