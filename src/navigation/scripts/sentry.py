@@ -5,6 +5,8 @@ from socket import socket
 import rospy
 from navigation.msg import Position, Positions
 
+__author__ = "YueLin"
+
 
 class SentryClient:
     def __init__(self, *hp):

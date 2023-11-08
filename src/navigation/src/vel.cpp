@@ -1,3 +1,5 @@
+/* @author: YueLin */
+
 #include <cmath>
 
 #include "tf/tf.h"
@@ -75,7 +77,6 @@ int main(int argc, char* argv[])
             dy = path.poses[1].pose.position.y - position.y * SCALE;
             double theta = yaw; // 暂时设为yaw，将来用辅助瞄准代替
             theta = tf::getYaw(path.poses[1].pose.orientation);  // 测试
-            theta = std::atan2(0.7 - position.y * SCALE, 0.7 - position.x * SCALE);
             vel.angular.z = clip(
                 abs(theta - yaw) > PI? yaw - theta: theta - yaw, cmd_z
             );

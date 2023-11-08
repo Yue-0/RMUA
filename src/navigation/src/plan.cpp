@@ -1,3 +1,5 @@
+/* @author: YueLin */
+
 #include <cmath>
 #include <queue>
 #include <vector>
@@ -330,13 +332,10 @@ int main(int argc, char* argv[])
     ros::Subscriber _2 = nh.subscribe<Map>("map", 1, initinalize);
     ros::Subscriber _3 = nh.subscribe<Positions>("sentry", 1, sentry);
     ros::Subscriber _4 = nh.subscribe<Position>("position", 1, locate);
-    // listener.waitForTransform("map", "laser", ros::Time(0), ros::Duration(10));
-    listener.waitForTransform("map", "link_laser", ros::Time(0), ros::Duration(10));
-    ros::Duration(10).sleep();
+    listener.waitForTransform("map", "laser", ros::Time(0), ros::Duration(10));
     while(ros::ok())
     {
-        // listener.lookupTransform("map", "laser", ros::Time(0), transform);
-        listener.lookupTransform("map", "link_laser", ros::Time(0), transform);
+        listener.lookupTransform("map", "laser", ros::Time(0), transform);
         ros::spinOnce();
         if(init)
         {

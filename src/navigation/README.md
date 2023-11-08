@@ -53,6 +53,8 @@ Use [AMCL algorithm](https://wiki.ros.org/amcl) to implement robot locating. All
 
 In order to carry out fast path planning, the A* search algorithm is used for preliminary path planning. Since the path obtained by the A* algorithm is not optimal, key points in the preliminary path are selected and constructed into a directed weighted grahp. In directed weighted graph, the Dijkstra algorithm is used to optimize the path on the graph to obtain the final path.
 
+![Path planning](../../images/navigation/planning.gif)
+
 ### 3.4 Velocity control
 
 Since the robot chassis has the ability to move in all directions, the omnidirectional velocity can be calculated directly based on the results of path planning.
