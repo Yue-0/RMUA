@@ -12,11 +12,11 @@
 
 ```
 decision
+├── scripts
+    └── sp.py          # 哨岗通信节点
 ├── src
     ├── gyroscope.cpp  # 摆尾策略节点
     └── robot_id.cpp   # 机器人 ID 服务节点
-├── srv
-    └── RobotID.srv    # 机器人 ID 服务类型
 ├── CMakeLists.txt
 ├── package.xml
 ├── README_cn.md
@@ -40,4 +40,4 @@ decision
 | 服务名称    | 节点名称    | 消息类型          | 说明              |
 |:----------:|:---------:|:----------------:|:-----------------|
 | /gyroscope | gyroscope | std_srvs/SetBool | 开启或关闭摆尾状态  |
-| /robot_id  | robot_id  | decision/RobotID | 查询机器人自身 ID  |
+| /robot_id  | robot_id  | sentry/RobotID   | 查询机器人自身 ID  |

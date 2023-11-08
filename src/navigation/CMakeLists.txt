@@ -11,12 +11,11 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   rospy
   roscpp
-  decision
+  sentry
   std_msgs
   nav_msgs
   sensor_msgs
   geometry_msgs
-  message_generation
 )
 
 # System dependencies are found with CMake's conventions
@@ -51,18 +50,19 @@ find_package(OpenCV REQUIRED)
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-# Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  Position.msg
-  Positions.msg
-)
+## Generate messages in the 'msg' folder
+# add_message_files(
+#   FILES
+#   Message1.msg
+#   Message2.msg
+# )
 
-# Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  plan.srv
-)
+## Generate services in the 'srv' folder
+# add_service_files(
+#   FILES
+#   Service1.srv
+#   Service2.srv
+# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -71,11 +71,11 @@ add_service_files(
 #   Action2.action
 # )
 
-# Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
+## Generate added messages and services with any dependencies listed here
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs  # Or other packages containing msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -180,7 +180,7 @@ target_link_libraries(position
 # Mark executable scripts (Python etc.) for installation
 # in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/sentry.py
+  scripts/mouse.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

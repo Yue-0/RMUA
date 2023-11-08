@@ -19,20 +19,17 @@ navigation
 ├── map
     ├── map.pgm            # RMUA 2021 地图
     └── map.yaml           # 地图描述文件
-├── msg
-    ├── Position.msg       # 自身信息
-    └── Positions.msg      # 所有机器人的信息
 ├── rviz
     └── rviz.rviz          # rviz 配置文件
 ├── scripts
     └── sentry.py          # 哨岗通信节点
 ├── src
+    ├── as.hpp             # A* 算法
     ├── lidar.cpp          # 雷达滤波节点
     ├── plan.cpp           # 路径规划节点
+    ├── plan.hpp           # 以 A* 为基础的 Dijkstra 算法
     ├── position.cpp       # 位置发布节点
     └── vel.cpp            # 速度控制节点
-├── srv
-    └── plan.srv           # 导航服务
 ├── CMakeLists.txt
 ├── package.xml
 ├── README_cn.md
@@ -71,9 +68,9 @@ navigation
 
 ### 使用的服务
 
-| 服务名称   | 节点名称  | 消息类型           | 说明            |
-|:---------:|:--------:|:----------------:|:---------------|
-| /robot_id | position | decision/RobotID | 查询机器人自身 ID |
+| 服务名称   | 节点名称  | 消息类型         | 说明            |
+|:---------:|:--------:|:--------------:|:---------------|
+| /robot_id | position | sentry/RobotID | 查询机器人自身 ID |
 
 ### 发布的话题
 
@@ -81,13 +78,13 @@ navigation
 |:---------:|:--------:|:----------------------:|:-----------------------------|
 | /scan     | lidar    | sensor_msgs/LaserScan  | 过滤后的雷达数据                |
 | /path     | plan     | nav_msgs/Path          | 路径规划结果                   |
-| /sentry   | sentry   | navigation/Positions   | 来自哨岗的全场机器人信息         |
+| /sentry   | sentry   | sentry/Positions       | 来自哨岗的全场机器人信息         |
 | /cmd_vel  | vel      | geometry_msgs/Twist    | 控制机器人底盘的速度             |
 | /costmap  | plan     | nav_msgs/OccupancyGrid | 代价地图                       |
-| /position | position | navigation/Position    | 来自 AMCL 和 RobotID 的自身信息 |
+| /position | position | sentry/Position        | 来自 AMCL 和 RobotID 的自身信息 |
 
 ### 提供的服务
 
-| 服务名称 | 节点名称 | 消息类型         | 说明        |
-|:-------:|:------:|:---------------:|:-----------|
-| /plan   | plan   | navigation/plan | 提供导航服务 |
+| 服务名称 | 节点名称 | 消息类型     | 说明        |
+|:-------:|:------:|:-----------:|:-----------|
+| /plan   | plan   | sentry/plan | 提供导航服务 |

@@ -11,7 +11,7 @@ from cv_bridge import CvBridge
 from torchvision.ops import nms
 from onnxruntime import InferenceSession as OnnxModel
 
-import decision.srv as rid
+import sentry.srv as sentry
 from sensor_msgs.msg import Image
 from roborts_msgs.msg import GimbalAngle
 from roborts_msgs.srv import ShootCmd, FricWhl
@@ -183,8 +183,8 @@ class Gimbal:
 
     def start(self) -> None:
         self.wheel(True)
-        color = RED if rospy.ServiceProxy("robot_id", rid.RobotID).call(
-            rid.RobotIDRequest(False, True)
+        color = RED if rospy.ServiceProxy("robot_id", sentry.RobotID).call(
+            sentry.RobotIDRequest(False, True)
         ).id == BLUE else BLUE
         while not rospy.is_shutdown():
             t = time.time()

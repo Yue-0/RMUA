@@ -19,20 +19,17 @@ navigation
 ├── map
     ├── map.pgm            # RMUA 2021 map
     └── map.yaml           # Map yaml file
-├── msg
-    ├── Position.msg       # Robot self information
-    └── Positions.msg      # Information about all robots
 ├── rviz
     └── rviz.rviz          # Configuration file for rviz
 ├── scripts
     └── sentry.py          # Sentry communicate node
 ├── src
+    ├── as.hpp             # A* algorithm
     ├── lidar.cpp          # Lidar filter node
     ├── plan.cpp           # Path planning node
+    ├── plan.hpp           # A* based Dijkstra algorithm
     ├── position.cpp       # Position publishing node
     └── vel.cpp            # velocity control node
-├── srv
-    └── plan.srv           # Navigation service
 ├── CMakeLists.txt
 ├── package.xml
 ├── README_cn.md
@@ -71,9 +68,9 @@ The following table only lists the topics and services of the nodes implemented 
 
 ### Services used
 
-| Service   | Node     | Message          | Note                 |
-|:---------:|:--------:|:----------------:|:---------------------|
-| /robot_id | position | decision/RobotID | Query the robot's ID |
+| Service   | Node     | Message        | Note                 |
+|:---------:|:--------:|:--------------:|:---------------------|
+| /robot_id | position | sentry/RobotID | Query the robot's ID |
 
 ### Published topics
 
@@ -81,13 +78,13 @@ The following table only lists the topics and services of the nodes implemented 
 |:---------:|:--------:|:----------------------:|:------------------------------------------|
 | /scan     | lidar    | sensor_msgs/LaserScan  | Filtered lidar data                       |
 | /path     | plan     | nav_msgs/Path          | Path planning result                      |
-| /sentry   | sentry   | navigation/Positions   | Full field robots information from sentry |
+| /sentry   | sentry   | sentry/Positions       | Full field robots information from sentry |
 | /cmd_vel  | vel      | geometry_msgs/Twist    | Control the velocity of the robot         |
 | /costmap  | plan     | nav_msgs/OccupancyGrid | Cost map                                  |
-| /position | position | navigation/Position    | Robot information from AMCL and RobotID   |
+| /position | position | sentry/Position        | Robot information from AMCL and RobotID   |
 
 ### Provided services
 
-| Service | Node | Message         | Note                      |
-|:-------:|:----:|:---------------:|:--------------------------|
-| /plan   | plan | navigation/plan | Provid navigation service |
+| Service | Node | Message     | Note                      |
+|:-------:|:----:|:-----------:|:--------------------------|
+| /plan   | plan | sentry/plan | Provid navigation service |

@@ -6,8 +6,9 @@
 #include "sensor_msgs/LaserScan.h"
 
 #define FILTER 1/3
-#define Ls sensor_msgs::LaserScan
 #define INIT ros::init(argc, argv, "lidar")
+
+typedef sensor_msgs::LaserScan Ls;
 
 Ls ls;
 int len, f;
@@ -36,7 +37,7 @@ int main(int argc, char* argv[])
 {
 	INIT;
 	ros::Time::init();
-	ros::Rate sleeper(10);
+	ros::Rate sleeper(100);
 	ros::NodeHandle handle;
 	ros::Publisher publisher = handle.advertise<Ls>("scan", 1);
 	ros::Subscriber subscriber = handle.subscribe<Ls>("laser_scan", 1, filter);

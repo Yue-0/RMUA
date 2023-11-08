@@ -7,7 +7,7 @@
 #include "nav_msgs/Path.h"
 #include "geometry_msgs/Twist.h"
 
-#include "navigation/Position.h"
+#include "sentry/Position.h"
 
 #define VEL 1.0
 #define RATE 100
@@ -20,7 +20,7 @@
 #define distance2(x1, y1, x2, y2) pow2(x1 - x2) + pow2(y1 - y2)
 
 #define Path nav_msgs::Path
-#define Position navigation::Position
+#define Position sentry::Position
 #define Velocity geometry_msgs::Twist
 
 const double PI = std::acos(-1);
@@ -77,6 +77,7 @@ int main(int argc, char* argv[])
             dy = path.poses[1].pose.position.y - position.y * SCALE;
             double theta = yaw; // 暂时设为yaw，将来用辅助瞄准代替
             theta = tf::getYaw(path.poses[1].pose.orientation);  // 测试
+            theta = std::atan2(0.7 - position.y * SCALE, 0.7 - position.x * SCALE);
             vel.angular.z = clip(
                 abs(theta - yaw) > PI? yaw - theta: theta - yaw, cmd_z
             );

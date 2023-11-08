@@ -1,38 +1,30 @@
 /* @author: YueLin */
 
 #include <cmath>
-#include <queue>
-#include <vector>
 
 #include "tf/tf.h"
 #include "ros/ros.h"
 #include "nav_msgs/Path.h"
-#include "opencv2/opencv.hpp"
 #include "sensor_msgs/LaserScan.h"
 #include "tf/transform_listener.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/PoseStamped.h"
 
-#include "navigation/plan.h"
-#include "navigation/Position.h"
-#include "navigation/Positions.h"
+#include "plan.hpp"
+#include "sentry/plan.h"
+#include "sentry/Position.h"
+#include "sentry/Positions.h"
 
-#define DX 25
 #define DELTA 30
 #define SCALE 1e-2
-#define EXPANSION 35
-#define INF 0xFFFFFFF
-#define pow2(n) (n)*(n)
+#define EXPANSION 38
 #define INIT ros::init(argc, argv, "plan")
 
-#define Point cv::Point2i
-#define Path nav_msgs::Path
-#define Points std::vector<Point>
-#define Map nav_msgs::OccupancyGrid
-#define Laser sensor_msgs::LaserScan
-#define Position navigation::Position
-#define Positions navigation::Positions
-#define IntMatrix std::vector<std::vector<int>>
+typedef nav_msgs::Path Path;
+typedef sentry::Position Position;
+typedef sentry::Positions Positions;
+typedef nav_msgs::OccupancyGrid Map;
+typedef sensor_msgs::LaserScan Laser;
 
 int self;
 Map cost;
@@ -41,163 +33,26 @@ cv::Point3f goal;
 Position position;
 Positions positions;
 tf::StampedTransform transform;
+const double PI = std::acos(-1);
 bool planning = false, init = false, pub = false;
 
-class Node
+int max(int x, int y)
 {
-    public:
-        int x, y, g, h, f;
-        Node(int x = 0, int y = 0, int g = 0, int h = 0):
-            x(x), y(y), g(g), h(h), f(g + h) {}
-};
-
-bool operator<(const Node& node1, const Node& node2)
-{
-    return node1.f > node2.f;
+    return x > y? x: y;
 }
 
-Points a(const cv::Mat& map, Point start, Point end)
+int rad2deg(double rad)
 {
-    int X = map.cols, Y = map.rows;
-    std::vector<Node> nodes(X * Y);
-    std::priority_queue<Node> queue;
-    Node node(start.x, start.y, 0, 0);
-    std::vector<int> parent(X * Y, -1);
-    std::vector<bool> visited(X * Y, false);
-    int index = X * node.y + node.x;
-    visited[index] = true;
-    nodes[index] = node;
-    queue.push(node);
-    while(!queue.empty())
-    {
-        node = queue.top(); queue.pop();
-        index = X * node.y + node.x;
-        if(node.x == end.x && node.y == end.y)
-        {
-            Points path;
-            while(parent[index] != -1)
-            {
-                path.push_back(Point(node.x, node.y));
-                node = nodes[parent[index]];
-                index = X * node.y + node.x;
-            }
-            std::reverse(path.begin(), path.end());
-            return path;
-        }
-        for(int dy = -1; dy <= 1; dy++)
-        {
-            int y = node.y + dy;
-            if(y < 0 || y >= Y) continue;
-            for(int dx = -1; dx <= 1; dx++)
-            {
-                int x = node.x + dx;
-                int idx = X * y + x;
-                if(x < 0 || x >= X || !map.at<uchar>(y, x) || visited[idx])
-                    continue;
-                int g = node.g + 1;
-                int h = std::abs(x - end.x) + std::abs(y - end.y);
-                Node next(x, y, g, h);
-                visited[idx] = true;
-                parent[idx] = index;
-                nodes[idx] = next;
-                queue.push(next);
-            }
-        }
-    }
-    return Points();
+    return 180 * rad / PI;
 }
 
-Points keypoint(const Points& path)
+double subtraction(double rad1, double rad2)
 {
-    Points keypoints;
-    int n = path.size();
-    if(!n) return keypoints;
-    keypoints.push_back(path[0]);
-    Point p0 = path[0], p1 = path[1], p2 = path[2];
-    for(int i = 3; i < path.size(); i++)
-    {
-        if((p1.x - p0.x) * (p2.y - p1.y) - (p1.y - p0.y) * (p2.x - p1.x))
-            keypoints.push_back(p1);
-        p0 = p1; p1 = p2; p2 = path[i];
-    }
-    keypoints.push_back(p2);
-    return keypoints;
+    float sub = std::fabs(rad1 - rad2);
+    return sub > PI? 2 * PI - sub: sub;
 }
 
-IntMatrix graph(const cv::Mat& map, const Points& points)
-{
-    int n = points.size();
-    IntMatrix g(n, std::vector<int>(n, 0));
-    for(int i = 0; i < n; i++)
-    {
-        Point p1 = points[i];
-        for(int j = i + 1; j < n; j++)
-        {
-            Point p2 = points[j];
-            bool connected = true;
-            if(j - i > 1)
-            {
-                cv::LineIterator line(map, p1, p2);
-                for(int k = 0; k < line.count; k++, line++)
-                {
-                    Point p = line.pos();
-                    if(!map.at<uchar>(p.y, p.x))
-                    {
-                        connected = false; break;
-                    }
-                }
-            }
-            if(connected)
-                g[i][j] = pow2(p1.x - p2.x) + pow2(p1.y - p2.y);
-        }
-    }
-    return g;
-}
-
-Points dijkstra(const IntMatrix& g, const Points& points)
-{
-    int n = g.size();
-    std::vector<int> dist(n, INF);
-    std::vector<int> parent(n, -1);
-    std::vector<bool> visited(n, false);
-    std::priority_queue<std::pair<int, int>> queue;
-    queue.push(std::make_pair(dist[0] = 0, 0));
-    while(!queue.empty())
-    {
-        int u = queue.top().second; queue.pop();
-        if(u == n - 1)
-        {
-            Points path;
-            path.push_back(points[n - 1]);
-            while(u = parent[u])
-                path.push_back(points[u]);
-            path.push_back(points[0]);
-            std::reverse(path.begin(), path.end());
-            return path;
-        }
-        for(int v = u + 1; v < n; v++)
-            if(!visited[v] && g[u][v])
-            {
-                int d = dist[u] + g[u][v];
-                if(d < dist[v])
-                {
-                    dist[v] = d;
-                    parent[v] = u;
-                    queue.push(std::make_pair(d, v));
-                }
-            }
-        visited[u] = true;
-    }
-    return Points();
-}
-
-Points as(const cv::Mat& map, Point start, Point end)
-{
-    Points path = keypoint(a(map, start, end));
-    return path.size()? dijkstra(graph(map, path), path): path;
-}
-
-bool srv(navigation::plan::Request& req, navigation::plan::Response& res)
+bool srv(sentry::plan::Request& req, sentry::plan::Response& res)
 {
     if(planning = req.x + req.y)
     {
@@ -227,10 +82,10 @@ Path plan(const cv::Mat& map, Point start, cv::Point3f end)
     }
     if(!path.poses.size())
     {
-        self++;
+        self += 2;
         return path;
     }
-    self = 5;
+    self = max(self - 1, 5);
     geometry_msgs::Pose pose2, pose1 = path.poses[0].pose;
     for(int p = 1; p < path.poses.size(); p++)
     {
@@ -246,6 +101,11 @@ Path plan(const cv::Mat& map, Point start, cv::Point3f end)
     pose2.orientation = tf::createQuaternionMsgFromYaw(end.z);
     path.poses[path.poses.size() - 1].pose = pose2;
     return path;
+}
+
+void sp(Positions::ConstPtr pos)
+{
+    positions = *pos;
 }
 
 void scan(Laser::ConstPtr laser)
@@ -267,7 +127,6 @@ void scan(Laser::ConstPtr laser)
             ), Point(
                 x0 + EXPANSION, y0 + EXPANSION
             ), 0, -1);
-            // cv::circle(map, Point(x0, y0), EXPANSION, 0, -1);
         }
         angle += laser->angle_increment;
     }
@@ -283,10 +142,6 @@ void scan(Laser::ConstPtr laser)
             positions.y[i] + 2 * EXPANSION
         ), 0, -1);
     }
-    // cv::rectangle(
-    //     map, Point(position.x - 5, position.y - 5), 
-    //     Point(position.x + 5, position.y + 5), 0xFF, -1
-    // );
     cv::circle(map, Point(position.x, position.y), self, 0xFF, -1);
     for(int y = 0; y < map.rows; y++)
         for(int x = 0; x < map.cols; x++)
@@ -298,11 +153,6 @@ void locate(Position::ConstPtr pos)
     position = *pos;
 }
 
-void sentry(Positions::ConstPtr pos)
-{
-    positions = *pos;
-}
-
 void initinalize(Map::ConstPtr map)
 {
     if(init) return;
@@ -311,7 +161,7 @@ void initinalize(Map::ConstPtr map)
         for(int x = 0; x < map->info.width; x++)
             image.at<uchar>(y, x) = map->data[y * map->info.width + x] == 0;
     cv::erode(0xFF * image, MAP, cv::getStructuringElement(
-        cv::MORPH_RECT, cv::Size(EXPANSION, EXPANSION)
+        cv::MORPH_RECT, cv::Size(EXPANSION << 1, EXPANSION << 1)
     ));
     self = 5;
     cost = *map;
@@ -330,7 +180,7 @@ int main(int argc, char* argv[])
     ros::ServiceServer _0 = nh.advertiseService("plan", srv);
     ros::Subscriber _1 = nh.subscribe<Laser>("scan", 1, scan);
     ros::Subscriber _2 = nh.subscribe<Map>("map", 1, initinalize);
-    ros::Subscriber _3 = nh.subscribe<Positions>("sentry", 1, sentry);
+    ros::Subscriber _3 = nh.subscribe<Positions>("sentry", 1, sp);
     ros::Subscriber _4 = nh.subscribe<Position>("position", 1, locate);
     listener.waitForTransform("map", "laser", ros::Time(0), ros::Duration(10));
     while(ros::ok())
@@ -341,8 +191,12 @@ int main(int argc, char* argv[])
         {
             if(planning)
             {
+                float z = position.yaw;
                 int x = position.x, y = position.y;
-                if(std::max(std::abs(x - goal.x), std::abs(y - goal.y)) > DELTA)
+                if(max(
+                    rad2deg(subtraction(z, goal.z)) << 1,
+                    max(std::abs(x - goal.x), std::abs(y - goal.y))
+                ) > DELTA)
                     planner.publish(plan(map, Point(x, y), goal));
                 else
                     planning = !(pub = true);

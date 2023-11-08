@@ -14,18 +14,20 @@
 
 ## 2.结构
 
-| 功能包名称                    | 功能       |
-|:----------------------------:|:---------:|
-| [decision](src/decision)     | 机器人决策 |
-| [navigation](src/navigation) | 导航和定位 |
-| [vision](src/vision)         | 视觉识别   |
+| 功能包名称                    | 功能        |
+|:----------------------------:|:----------:|
+| [decision](src/decision)     | 机器人决策  |
+| [navigation](src/navigation) | 导航和定位  |
+| [sentry](src/sentry)         | 定义哨岗消息 |
+| [vision](src/vision)         | 视觉识别    |
 
-功能包的具体结构、功能和原理请参考功能包内部的README文件。
+sentry 功能包中定义了自定义话题和服务，其他功能包都需要依赖此功能包。各个功能包的具体结构、功能和原理请参考功能包内部的 README 文件。
 
 ```
 src
 ├── decision
 ├── navigation
+├── sentry
 └── vision
 ```
 
@@ -45,6 +47,9 @@ src
 git clone https://github.com/Yue-0/RMUA.git
 cd ./RMUA/src
 catkin_init_workspace
-cd ..
-catkin_make
+cd ./vision
+pip install -r requirements.txt
+cd ../..
+catkin_make --only-pkg-with-deps sentry
+catkin_make -DCATKIN_WHITELIST_PACKAGES="decision;navigation;vision"
 ```

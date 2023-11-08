@@ -6,16 +6,15 @@
 #include "ros/ros.h"
 #include "tf/transform_listener.h"
 
-#include "decision/RobotID.h"
-#include "navigation/Position.h"
+#include "sentry/RobotID.h"
+#include "sentry/Position.h"
 
 #define RED -1
 #define BLUE 1
 #define SCALE 1e2
 #define INIT ros::init(argc, argv, "position")
 
-using namespace decision;
-using namespace navigation;
+using namespace sentry;
 
 int main(int argc, char* argv[])
 {

@@ -4,13 +4,13 @@
 
 #include "ros/ros.h"
 
-#include "decision/RobotID.h"
+#include "sentry/RobotID.h"
 
 #define RED -1
 #define BLUE 1
 #define INIT ros::init(argc, argv, "robot_id")
 
-using namespace decision;
+using namespace sentry;
 
 short id, num, color;
 

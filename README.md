@@ -18,14 +18,16 @@ All codes in this project run on Ubuntu20.04 and rely on [ROS-noetic](http://wik
 |:----------------------------:|:--------------------------:|
 | [decision](src/decision)     | Robt decision              |
 | [navigation](src/navigation) | Navigation and positioning |
+| [sentry](src/sentry)         | Define sentry messages     |
 | [vision](src/vision)         | Visual identity            |
 
-For the specific structure, functions and principles of any packages, please refer to the README file inside the package.
+Custom topics and services are defined in the sentry package, and other packages need to rely on this package. For the specific structure, functions and principles of each package, please refer to the README file inside the package.
 
 ```
 src
 ├── decision
 ├── navigation
+├── sentry
 └── vision
 ```
 
@@ -45,6 +47,9 @@ Clone and compile this project using the following code:
 git clone https://github.com/Yue-0/RMUA.git
 cd ./RMUA/src
 catkin_init_workspace
-cd ..
-catkin_make
+cd vision
+pip install -r requirements.txt
+cd ../..
+catkin_make --only-pkg-with-deps sentry
+catkin_make -DCATKIN_WHITELIST_PACKAGES="decision;navigation;vision"
 ```

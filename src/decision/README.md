@@ -12,11 +12,11 @@ This package is expected to implement a behavior tree based robot decision makin
 
 ```
 decision
+├── scripts
+    └── sp.py          # Sentry communicate node
 ├── src
     ├── gyroscope.cpp  # Gyroscope node
     └── robot_id.cpp   # Robot ID service node
-├── srv
-    └── RobotID.srv    # Robot ID service type
 ├── CMakeLists.txt
 ├── package.xml
 ├── README_cn.md
@@ -40,4 +40,4 @@ This package is not fully implemented yet.
 | Service    | Node      | Message          | Note                          |
 |:----------:|:---------:|:----------------:|:------------------------------|
 | /gyroscope | gyroscope | std_srvs/SetBool | Turn on or off the gyroscope. |
-| /robot_id  | robot_id  | decision/RobotID | Query the robot's ID.         |
+| /robot_id  | robot_id  | sentry/RobotID   | Query the robot's ID.         |

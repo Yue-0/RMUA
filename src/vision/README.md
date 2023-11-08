@@ -4,7 +4,7 @@ __English__ | [简体中文](README_cn.md)
 
 ## 1.Introducion
 
-This package is robot vision identity package, which is not fully implemented at this time.
+This package is robot visual recognition package that provides armor plate detection and shooting functions.
 
 ## 2.Structure
 
@@ -23,8 +23,6 @@ vision
 
 ## 3.Illustrate
 
-This package is not fully implemented yet.
-
 ### 3.1 Armor plate detection
 
 By lightweigting [YOLOv6](https://github.com/meituan/yolv6) to achieve fast armor plate detection. The number of parameters of the lightweight model is only 0.55M. When the input image size is 320 x 320, the FLOPS is only 0.56G. The single-image inference time on a computer equipped with a [Geforce RTX 2060](https://nvidia.cn/geforce/graphics-cards/rtx-2060) only takes 4ms.
@@ -41,7 +39,7 @@ Use the mathematical model of oblique throwing motion to calculate the rotation 
 
 | Service         | Node   | Message               | Note                               |
 |:---------------:|:------:|:---------------------:|:-----------------------------------|
-| /robot_id       | gimbal | decision/RobotID      | Check the color of our team.       |
+| /robot_id       | gimbal | sentry/RobotID        | Check the color of our team.       |
 | /cmd_shoot      | gimbal | roborts_msgs/ShootCmd | Control bullet shoot.              |
 | /cmd_fric_wheel | gimbal | roborts_msgs/FricWhl  | Turn on or off the friction wheel. |
 

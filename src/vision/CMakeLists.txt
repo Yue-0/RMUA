@@ -9,7 +9,7 @@ project(vision)
 # is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
-  decision
+  sentry
   std_msgs
   sensor_msgs
   roborts_msgs
@@ -72,7 +72,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   roborts_msgs#   std_msgs
+#   std_msgs
 # )
 
 ################################################

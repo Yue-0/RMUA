@@ -3,7 +3,7 @@ from json import dumps
 from socket import socket
 
 import rospy
-from navigation.msg import Position, Positions
+from sentry.msg import Position, Positions
 
 __author__ = "YueLin"
 

@@ -8,31 +8,29 @@
 
 #define MIN 0.2
 #define OMIGA 2
-#define NODE "gyroscope"
 #define NOW ros::Time::now().toSec()
 #define omiga(dt) OMIGA * std::cos((dt) * PI)
+#define INIT ros::init(argc, argv, "gyroscope")
 
-#define Bool std_srvs::SetBool
-#define Velocity geometry_msgs::Twist
+typedef geometry_msgs::Twist Velocity;
+typedef std_srvs::SetBool::Request Request;
+typedef std_srvs::SetBool::Response Response;
 
 double t;
 bool defense = false;
 const double PI = std::acos(-1);
 
-bool gyroscope(Bool::Request &req, Bool::Response &res)
+bool gyroscope(Request &req, Response &res)
 {
     if(defense = req.data)
-    {
         t = NOW;
-    }
-    res.success = true;
-    return true;
+    return res.success = true;
 }
 
 int main(int argc, char* argv[])
 {
+    INIT;
     Velocity v;
-    ros::init(argc, argv, NODE);
 	ros::Time::init();
 	ros::Rate sleeper(10);
 	ros::NodeHandle handle;
