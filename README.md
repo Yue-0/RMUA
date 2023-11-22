@@ -33,7 +33,7 @@ src
 
 ## 3.Requirements
 
-* The robot used in this project is the [RoboMaster2020 standard AI robot](https://www.robomaster.com/zh-CN/products/components/detail/2499). You need to download and compile [RoboRTS](https://github.com/RoboMaster/RoboRTS) as the underlying driver.
+* The robot used in this project is the [RoboMaster2020 standard AI robot](https://www.robomaster.com/zh-CN/products/components/detail/2499). You need to download and compile [RoboRTS](https://github.com/RoboMaster/RoboRTS-Base) as the underlying driver.
 * This project uses an [Intel RealSense](https://www.intelrealsense.com/) depth camera as a visual sensor, installed under the gimbal barrel, and uses Python to read image data, which requires the pyrealsense2 library.
 * This project uses two single-line lidars, which are installed in front and behind the robot. The ROS driver corresponding to the lidar needs to be installed.
 * Some codes of some packages in this project are written in Python >= 3.8, and the dependencies are given in requirements.txt in the package directory.
@@ -52,4 +52,19 @@ pip install -r requirements.txt
 cd ../..
 catkin_make --only-pkg-with-deps sentry
 catkin_make -DCATKIN_WHITELIST_PACKAGES="decision;navigation;vision"
+source devel/setup.bash
+```
+
+## 5.运行
+
+After successful compilation, move the robot to the starting point and use the following commands to make the robot ready for the 1v1 competition.
+
+```shell
+roslaunch decision 1v1.launch
+```
+
+Running the above command will start rviz. After the robot positioning is completed, enter the following command in another terminal to start decision-making.
+
+```shell
+rosservice call /start 1
 ```
