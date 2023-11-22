@@ -55,7 +55,7 @@ catkin_make -DCATKIN_WHITELIST_PACKAGES="decision;navigation;vision"
 source devel/setup.bash
 ```
 
-## 5.运行
+## 5.Run 1v1
 
 After successful compilation, move the robot to the starting point and use the following commands to make the robot ready for the 1v1 competition.
 
