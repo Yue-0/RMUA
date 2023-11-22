@@ -1,4 +1,5 @@
 .vscode
 build
 devel
+src/sentry/scripts/client.py
 .catkin_workspace

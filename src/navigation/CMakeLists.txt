@@ -143,6 +143,7 @@ include_directories(
 add_executable(vel src/vel.cpp)
 add_executable(plan src/plan.cpp)
 add_executable(lidar src/lidar.cpp)
+add_executable(points src/points.cpp)
 add_executable(position src/position.cpp)
 
 ## Rename C++ executable without prefix
@@ -164,6 +165,9 @@ target_link_libraries(plan
   ${catkin_LIBRARIES}
 )
 target_link_libraries(lidar
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(points
   ${catkin_LIBRARIES}
 )
 target_link_libraries(position

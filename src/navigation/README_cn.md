@@ -28,6 +28,7 @@ navigation
     ├── lidar.cpp          # 雷达滤波节点
     ├── plan.cpp           # 路径规划节点
     ├── plan.hpp           # 以 A* 为基础的 Dijkstra 算法
+    ├── points.cpp         # 点云构建节点
     ├── position.cpp       # 位置发布节点
     └── vel.cpp            # 速度控制节点
 ├── CMakeLists.txt
@@ -40,7 +41,7 @@ navigation
 
 ### 3.1 雷达
 
-由于单线激光雷达被安装在机器人云台的前方，云台会挡住雷达的一部分扫描范围，因此对雷达数据进行了过滤，只保留了机器人前方 240 度的雷达数据。
+使用两个单线激光雷达，分别安装在机器人的正前方和正后方，实现全向感知。
 
 ### 3.2 定位
 
@@ -62,9 +63,10 @@ navigation
 
 ### 订阅的话题
 
-| 话题名称           | 节点名称 | 消息类型             | 说明              |
-|:-----------------:|:------:|:---------------------:|:-----------------|
-| /laser_scan       | lidar  | sensor_msgs/LaserScan | 雷达发布的原始数据 |
+| 话题名称 | 节点名称 | 消息类型         | 说明                       |
+|:-------:|:-------:|:----------------:|:--------------------------|
+| /enemy  | vel     | sentry/Position  | 来自决策节点的敌人位置信息   |
+| /sentry | plan    | sentry/Positions | 来自哨岗的全场机器人位置信息 |
 
 ### 使用的服务
 
@@ -76,8 +78,10 @@ navigation
 
 | 话题名称   | 节点名称  | 消息类型               | 说明                           |
 |:---------:|:--------:|:----------------------:|:------------------------------|
-| /scan     | lidar    | sensor_msgs/LaserScan  | 过滤后的雷达数据                |
+| /scan     | lidar    | sentry/Points          | 融合后的点云数据                |
 | /path     | plan     | nav_msgs/Path          | 路径规划结果                   |
+| /scan1    | lidar    | sensor_msgs/LaserScan  | 过滤后的前置雷达数据            |
+| /scan2    | lidar    | sensor_msgs/LaserScan  | 过滤后的后置雷达数据            |
 | /cmd_vel  | vel      | geometry_msgs/Twist    | 控制机器人底盘的速度            |
 | /costmap  | plan     | nav_msgs/OccupancyGrid | 代价地图                       |
 | /position | position | sentry/Position        | 来自 AMCL 和 RobotID 的自身信息 |

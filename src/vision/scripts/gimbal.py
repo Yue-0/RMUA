@@ -19,11 +19,13 @@ from roborts_msgs.srv import ShootCmd, FricWhl
 __author__ = "YueLin"
 
 RED, BLUE = tuple(range(2))
+V, Q, DQ, DT, DIS = 20, 240, 12, 0.1, 4
 ONNX = path.join(path.split(path.split(__file__)[0])[0], "onnx")
 
 
-class D435:
+class D455:
     def __init__(self, width: int = 640, height: int = 480, fps: int = 30):
+        self.fps = fps
         self.camera, cfg = rs.pipeline(), rs.config()
         cfg.enable_stream(rs.stream.depth, width, height, rs.format.z16, fps)
         cfg.enable_stream(rs.stream.color, width, height, rs.format.bgr8, fps)
@@ -41,10 +43,12 @@ class D435:
 
 
 class Detector:
-    def __init__(self, onnx: str, device: str = "cuda", size: int = 320):
+    def __init__(self, model: str, device: str = None, size: int = 320):
         self.size = size
+        if device is None:
+            device = "CUDA" if torch.cuda.is_available() else "CPU"
         self.model = OnnxModel(
-            path.join(ONNX, onnx),
+            path.join(ONNX, "{}.onnx".format(model)),
             providers=["{}ExecutionProvider".format(device.upper())]
         )
 
@@ -114,19 +118,16 @@ class Detector:
 
 class Gimbal:
     def __init__(self):
-        self.t = 0
-        self.n = 90
-        self.da = 3
-        self.dr = 5e-2
-        self.dt = 3e-2
-        self.fire = 0
-        self.pitch = 0
-        self.color = 0
-        self.camera = D435()
+        self.dr = 5e-2        # Maximum rad of gimbal rotation
+        self.pitch = 0        # The pitch angle of the gimbal
+        self.enemy = 0j       # The last detected enemy position
+        self.camera = D455()  # The Intel RealSence D455 camera
+        self.temperature = 0  # The heat of the barrel, cannot exceed Q
         rospy.init_node("gimbal")
+        self.dt = 1 / self.camera.fps
         self.tf = tf.TransformListener()
         self.img2msg = CvBridge().cv2_to_imgmsg
-        self.detector = Detector("YOLOv6.onnx", "cuda")
+        self.detector = Detector("YOLOv6", "cuda")
         self.shoot = rospy.ServiceProxy("cmd_shoot", ShootCmd)
         self.wheel = rospy.ServiceProxy("cmd_fric_wheel", FricWhl)
         for service in ("cmd_shoot", "cmd_fric_wheel", "robot_id"):
@@ -138,7 +139,7 @@ class Gimbal:
             "cmd_gimbal_angle", GimbalAngle, queue_size=1
         )
     
-    def run(self, color: int, number: int = 1) -> None:
+    def run(self, color: int, bullet: int = 1) -> None:
         angle = GimbalAngle()
         image, depth = self.camera.read()
         enemy = self.detect(image, color)
@@ -149,66 +150,72 @@ class Gimbal:
             )[-1]
         )
         if enemy:
-            self.t = 0
-            self.fire = 1
             x, y, w, h = enemy
             cv2.rectangle(
                 image, (x - w // 2, y - h // 2),
-                (x + w // 2, y + h // 2), (255,) * 3
+                (x + w // 2, y + h // 2), (0, 255, 0)
             )
-            angle.pitch_angle, angle.yaw_angle = self.angle(depth, enemy)
+            d, angle.pitch_angle, angle.yaw_angle = self.angle(depth, enemy)
             self.gimbal.publish(angle)
+            self.enemy = w + 0j  # imag: The number of times no enemy detected
+            if d > DIS:
+                self.enemy += 1j
         else:
-            self.t += 1
-            self.fire += np.sign(self.fire)
-            if self.fire > 10:
-                self.n, self.fire = np.rad2deg(yaw + np.pi / 2), 0
+            if self.enemy.real:
+                self.enemy += 1j
+                if self.enemy.imag >= self.camera.fps >> 2:
+                    self.enemy *= 0
             else:
                 angle.pitch_angle = angle.yaw_angle = 0
                 self.gimbal.publish(angle)
-        if not self.fire:
-            self.n += self.da
-            if self.n >= 360:
-                self.n = 0
-            angle.yaw_angle = np.deg2rad(self.da)
-            angle.pitch_angle = min(abs(self.pitch), self.dr)
-            if self.n < 180:
-                angle.yaw_angle *= -1
-            if self.pitch > 0:
-                angle.pitch_angle *= -1
+        if not self.enemy:
+            angle.yaw_angle = min(abs(yaw), self.dr)
+            angle.pitch_angle = -np.sign(self.pitch)
+            angle.pitch_angle *= min(abs(self.pitch), self.dr)
+            angle.yaw_angle *= 0 if abs(yaw) < np.deg2rad(1) else -np.sign(yaw)
             self.gimbal.publish(angle)
-        if self.fire == 1:
-            self.shoot(True, number)
+        if self.enemy.real and self.enemy.imag < 1 and self.temperature + V < Q:
+            self.temperature += V
+            self.shoot(True, bullet)
         self.show.publish(self.img2msg(image, "bgr8"))
 
     def start(self) -> None:
         self.wheel(True)
-        color = RED if rospy.ServiceProxy("robot_id", sentry.RobotID).call(
+        start = clock = 0
+        color = RED if rospy.ServiceProxy(
+            "robot_id", sentry.RobotID
+        ).call(
             sentry.RobotIDRequest(False, True)
         ).id == BLUE else BLUE
         while not rospy.is_shutdown():
             t = time.time()
             self.run(color)
-            time.sleep(max(self.dt + t - time.time(), 0))
+            time.sleep(max(t + self.dt - time.time(), 0))
+            clock += time.time() - t
+            if cool := (clock - start) // DT:
+                start += DT * cool
+                clock -= DT * cool
+                self.temperature = max(0, self.temperature - cool * DQ)
         self.camera.close()
 
     def angle(self, depth: np.ndarray, coordinate: list) -> tuple:
         x, y, w, h = coordinate
-        yaw = np.tanh((mid := depth.shape[1] >> 1) - x)
+        mid = depth.shape[1] >> 1
+        yaw = np.tanh((mid - x) / (mid >> 2))
+        yaw *= self.dr if abs(mid - x) > w >> 4 else 0
         depth = depth[
-            y - h // 2:y + h // 2, x - w // 2:x + w // 2
+            y - h // 3:y + h // 3, x - w // 3:x + w // 3
         ] * 1e-3
         depth = np.mean(depth[depth != 0])
-        yaw *= self.dr if abs(mid - x) > w >> 2 else 0
-        a, b = -312.33438 + 9.8 * depth ** 2, -2500 * depth
-        c, d = 624.66876 + 19.6 * depth ** 2, 2.548 * depth
+        a, b = -249.86 + 9.8 * depth ** 2, -2500 * depth
+        c, d = 499.72 + 19.6 * depth ** 2, 2.342 * depth
         try:
             pitch = np.arctan(np.roots([a + d, b, c, -b, a - d])[-1]) * 2
         except np.linalg.LinAlgError:
             pitch = self.pitch
         pitch -= self.pitch
         pitch = np.sign(pitch) * min(abs(pitch), self.dr)
-        return pitch, yaw
+        return depth, pitch, yaw
 
     def detect(self, image: np.ndarray, color: int, score: float = 0.5) -> list:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -217,7 +224,13 @@ class Gimbal:
             scores > score, colors == color, bboxes[:, 2] <= bboxes[:, -1] * 3
         )
         bboxes, scores = bboxes[keep], scores[keep]
-        return bboxes[np.argmax(scores)].tolist() if bboxes.shape[0] else []
+        if bboxes.shape[0]:
+            if not self.enemy.real:
+                return bboxes[np.argmax(scores)].tolist()
+            return bboxes[np.argmin(np.abs(
+                self.enemy.real - bboxes[:, 2]
+            ))].tolist()
+        return list()
 
 
 Gimbal().start()

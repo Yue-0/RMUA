@@ -32,11 +32,14 @@ double pow2(double x)
 
 double clip(double v, double v0)
 {
-    double a = v - v0;
-    if(abs(a) > ACC)
-        v = v0 + ACC * sgn(a);
-    if(abs(v) > VEL)
-        v = VEL * sgn(v);
+    if(abs(v) > abs(v0))
+    {
+        double a = v - v0;
+        if(abs(a) > ACC)
+            v = v0 + ACC * sgn(a);
+        if(abs(v) > VEL)
+            v = VEL * sgn(v);
+    }
     return v;
 }
 
@@ -45,18 +48,21 @@ int main(int argc, char* argv[])
     INIT;
     Path path;
     Velocity vel;
-    Position position;
     ros::Time::init();
     ros::NodeHandle nh;
     ros::Rate sleeper(RATE);
+    Position position, enemy;
     float cmd_x, cmd_y, cmd_z;
-    ros::Subscriber _1 = nh.subscribe<Path>(
+    ros::Subscriber _1 = nh.subscribe<Position>(
+        "enemy", 1, [&enemy](Position::ConstPtr e){enemy = *e;}
+    );
+    ros::Subscriber _2 = nh.subscribe<Path>(
         "path", 1, [&path](Path::ConstPtr points){path = *points;}
     );
-    ros::Subscriber _2 = nh.subscribe<Position>(
+    ros::Subscriber _3 = nh.subscribe<Position>(
         "position", 1, [&position](Position::ConstPtr p){position = *p;}
     );
-    ros::Subscriber _3 = nh.subscribe<Velocity>(
+    ros::Subscriber _4 = nh.subscribe<Velocity>(
         "cmd_vel", 1, [&cmd_x, &cmd_y, &cmd_z](Velocity::ConstPtr cmd_vel)
         {
             cmd_x = cmd_vel->linear.x;
@@ -64,7 +70,7 @@ int main(int argc, char* argv[])
             cmd_z = cmd_vel->angular.z;
         }
     );
-    vel.linear.x = vel.linear.y = vel.angular.z = 0;
+    vel.linear.x = vel.linear.y = vel.angular.z =
     vel.linear.z = vel.angular.x = vel.angular.y = 0;
     ros::Publisher pub = nh.advertise<Velocity>("cmd_vel", 1);
     while(ros::ok())
@@ -74,10 +80,10 @@ int main(int argc, char* argv[])
         {
             double yaw = position.yaw,
             dx = path.poses[1].pose.position.x - position.x * SCALE,
-            dy = path.poses[1].pose.position.y - position.y * SCALE;
-            double theta = yaw; // 暂时设为yaw，将来用辅助瞄准代替
-            theta = tf::getYaw(path.poses[1].pose.orientation);  // 测试
-            theta = std::atan2(0.7 - position.y * SCALE, 0.7 - position.x * SCALE);
+            dy = path.poses[1].pose.position.y - position.y * SCALE,
+            theta = std::atan2(enemy.y - position.y, enemy.x - position.x);
+            if(enemy.id * position.id >= 0) theta = yaw;
+            // theta = std::atan2(0.7 - position.y * SCALE, 0.7 - position.x * SCALE);
             vel.angular.z = clip(
                 abs(theta - yaw) > PI? yaw - theta: theta - yaw, cmd_z
             );
@@ -125,9 +131,7 @@ int main(int argc, char* argv[])
             vel.linear.y = clip(vel.linear.y, cmd_y);
         }
         else
-        {
             vel.linear.x = vel.linear.y = vel.angular.z = 0;
-        }
         if(
             vel.linear.x != cmd_x ||
             vel.linear.y != cmd_y ||

@@ -9,7 +9,7 @@
 ## 1.介绍
 
 本工程是重大项目中的重要课题之一，旨在实现多智能体 2v2 自动对抗。
-本工程共使用 4 台全向移动机器人在 [RMUA 2021](https://icra2021.org/competitions/dji-robomaster-ai-challenge) 的比赛地图上进行全自动对抗。
+本工程共使用 4 台全向移动机器人在 [RMUA 2021 的比赛地图](src/navigation/map/map.pgm)上进行全自动对抗。
 本工程所有代码在 Ubuntu20.04 运行，依赖 [ROS-noetic](http://wiki.ros.org/noetic)。
 
 ## 2.结构
@@ -35,7 +35,7 @@ src
 
 * 本工程使用的机器人为 [RoboMaster 2020 标准版 AI 机器人](https://www.robomaster.com/zh-CN/products/components/detail/2499)，需要先[下载并编译 RoboRTS](https://github.com/RoboMaster/RoboRTS) 作为底层驱动。
 * 本工程使用一个 [Intel RealSense](https://www.intelrealsense.com/) 深度相机作为视觉传感器，安装在云台炮管的下方，并使用 Python 读取图像数据，需要依赖 pyrealsense2 库。
-* 本工程使用一个单线激光雷达，倒置安装在机器人中心的正前方约 20 厘米处，需要安装对应雷达的 ROS 驱动。
+* 本工程使用两个单线激光雷达，分别安装在机器人的前方和后方，需要安装对应雷达的 ROS 驱动。
 * 本工程一些功能包的部分代码使用 Python >= 3.8 编写，依赖在功能包目录下的 requirements.txt 中给出。
 
 ## 4.编译
@@ -52,4 +52,18 @@ pip install -r requirements.txt
 cd ../..
 catkin_make --only-pkg-with-deps sentry
 catkin_make -DCATKIN_WHITELIST_PACKAGES="decision;navigation;vision"
+```
+
+## 5.运行
+
+编译成功后，将机器人移动至起始点，使用以下指令使机器人进入 1v1 比赛的准备状态
+
+```shell
+roslaunch decision 1v1.launch
+```
+
+运行以上指令会启动 rviz，等待机器人定位完成后，在另一个终端中输入以下指令开始决策
+
+```shell
+rosservice call /start 1
 ```

@@ -11,8 +11,11 @@
 ```
 sentry
 ├── msg
+    ├── Points.msg     # 点云信息
     ├── Position.msg   # 机器人自身信息
     └── Positions.msg  # 所有机器人的信息
+├── scripts
+    └── client.py      # 该脚本不由本仓库维护
 ├── srv
     ├── plan.srv       # 导航服务
     └── RobotID.srv    # 机器人 ID 服务
@@ -24,7 +27,18 @@ sentry
 
 ## 3.自定义话题
 
-### 3.1 [Position.msg](msg/Position.msg)
+### 3.1 [Points.msg](msg/Points.msg)
+
+本话题用于记录前后雷达数据融合后的结果。
+
+```
+uint64 len    # 点的个数
+string frame  # 坐标系名称
+float64[] x   # x 坐标
+float64[] y   # y 坐标
+```
+
+### 3.2 [Position.msg](msg/Position.msg)
 
 本话题用于机器人向哨岗发送数据，包含机器人自身的 ID 信息和位置信息。
 
@@ -35,7 +49,7 @@ int32 y      // 机器人在 map 坐标系下的 y 坐标，单位：厘米
 float64 yaw  // 机器人在 map 坐标系下的旋转角度，单位：弧度
 ```
 
-### 3.2 [Positions.msg](msg/Positions.msg)
+### 3.3 [Positions.msg](msg/Positions.msg)
 
 本话题用于机器人接收来自哨岗的数据，包含全场所有机器人的 ID 信息和位置信息。
 

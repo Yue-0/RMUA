@@ -1,0 +1,5 @@
+<launch>
+    <node name="aim" pkg="decision" type="aim" output="screen" />
+    <node name="main" pkg="decision" type="ai" output="screen" />
+    <node name="gyroscope" pkg="decision" type="gyroscope" output="screen" />
+</launch>

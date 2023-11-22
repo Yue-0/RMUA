@@ -28,8 +28,9 @@ navigation
     ├── lidar.cpp          # Lidar filter node
     ├── plan.cpp           # Path planning node
     ├── plan.hpp           # A* based Dijkstra algorithm
+    ├── points.cpp         # Point cloud node
     ├── position.cpp       # Position publishing node
-    └── vel.cpp            # velocity control node
+    └── vel.cpp            # Velocity control node
 ├── CMakeLists.txt
 ├── package.xml
 ├── README_cn.md
@@ -40,7 +41,7 @@ navigation
 
 ### 3.1 Lidar
 
-Since the single-line lidar is installed in front of the robot's gimbal, the gimbal will block part of the lidar's scanning range, so the lidar data is filtered and only the lidar data 240 degrees in front of the robot is retained.
+We use two single-line lidars, which are installed directly in front and behind the robot to achieve omnidirectional sensing.
 
 ### 3.2 Locating
 
@@ -62,9 +63,10 @@ The following table only lists the topics and services of the nodes implemented 
 
 ### Subscribed topics
 
-| Topic             | Node   | Message               | Note                       |
-|:-----------------:|:------:|:---------------------:|:---------------------------|
-| /laser_scan       | lidar  | sensor_msgs/LaserScan | Raw data released by lidar |
+| Topic   | Node | Message          | Note                                                 |
+|:-------:|:----:|:----------------:|:-----------------------------------------------------|
+| /enemy  | vel  | sentry/Position  | Enemy location information from decision nodes       |
+| /sentry | plan | sentry/Positions | Full-site robot position information from the sentry |
 
 ### Services used
 
@@ -76,8 +78,10 @@ The following table only lists the topics and services of the nodes implemented 
 
 | Topic     | Node     | Message                | Note                                      |
 |:---------:|:--------:|:----------------------:|:------------------------------------------|
-| /scan     | lidar    | sensor_msgs/LaserScan  | Filtered lidar data                       |
+| /scan     | lidar    | sentry/Points          | Fusion point cloud data                   |
 | /path     | plan     | nav_msgs/Path          | Path planning result                      |
+| /scan2    | lidar    | sensor_msgs/LaserScan  | Filtered rear lidar data                  |
+| /scan1    | lidar    | sensor_msgs/LaserScan  | Filtered front lidar data                 |
 | /cmd_vel  | vel      | geometry_msgs/Twist    | Control the velocity of the robot         |
 | /costmap  | plan     | nav_msgs/OccupancyGrid | Cost map                                  |
 | /position | position | sentry/Position        | Robot information from AMCL and RobotID   |

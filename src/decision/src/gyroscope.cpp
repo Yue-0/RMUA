@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
 	ros::Time::init();
 	ros::Rate sleeper(10);
 	ros::NodeHandle handle;
-	ros::Publisher pub = handle.advertise<Velocity>("cmd_vel", 10);
     v.linear.z = v.angular.x = v.angular.y = v.linear.x = v.linear.y = 0;
+	ros::Publisher publisher = handle.advertise<Velocity>("cmd_vel", 10);
     ros::ServiceServer srv = handle.advertiseService("gyroscope", gyroscope);
 	while(ros::ok())
 	{
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
         {
             double w = omiga(NOW - t);
             v.angular.z = (w >= 0? std::max(w, MIN): std::min(w, -MIN));
-            pub.publish(v);
+            publisher.publish(v);
         }
 		sleeper.sleep();
 	}

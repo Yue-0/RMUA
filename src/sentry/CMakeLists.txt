@@ -4,9 +4,9 @@ project(sentry)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
+# Find catkin macros and libraries
+# if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+# is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
@@ -48,6 +48,7 @@ find_package(catkin REQUIRED COMPONENTS
 # Generate messages in the 'msg' folder
 add_message_files(
   FILES
+  Points.msg
   Position.msg
   Positions.msg
 )
@@ -156,12 +157,12 @@ include_directories(
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
-# catkin_install_python(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+# Mark executable scripts (Python etc.) for installation
+# in contrast to setup.py, you can choose the destination
+catkin_install_python(PROGRAMS
+  scripts/client.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

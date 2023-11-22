@@ -1,6 +1,6 @@
 numpy
 torch
 torchvision
-onnxruntime
 pyrealsense2
 opencv-python
+onnxruntime-gpu

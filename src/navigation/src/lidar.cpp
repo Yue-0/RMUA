@@ -1,27 +1,30 @@
 /* @author: YueLin */
 
 #include <vector>
+#include <stdlib.h>
 
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 
-#define FILTER 1/3
 #define INIT ros::init(argc, argv, "lidar")
 
-typedef sensor_msgs::LaserScan Ls;
+typedef sensor_msgs::LaserScan LaserScan;
 
-Ls ls;
-int len, f;
-
-void filter(Ls::ConstPtr data)
+void init(int* pl, int* pf, LaserScan::ConstPtr data, float crop)
 {
-	if(!len)
-	{
-		len = data->ranges.size();
-		len -= (f = (len * FILTER) >> 1) << 1;
-	}
-	ls = *data;
-	std::vector<float> ranges(len), intensities(len);
+    if(!*pl)
+    {
+        int len = data->ranges.size();
+        int f = len * crop;
+        *pl = len - f;
+        *pf = f >> 1;
+    }
+}
+
+LaserScan filter(LaserScan::ConstPtr data, int len, int f)
+{
+    LaserScan ls = *data;
+    std::vector<float> ranges(len), intensities(len);
 	for(int angle = 0; angle < len; angle++)
 	{
 		ranges[angle] = data->ranges[angle + f];
@@ -31,21 +34,22 @@ void filter(Ls::ConstPtr data)
 	ls.intensities = intensities;
 	ls.angle_min += f * ls.angle_increment;
 	ls.angle_max = ls.angle_min + (len - 1) * ls.angle_increment;
+    return ls;
 }
 
 int main(int argc, char* argv[])
 {
-	INIT;
-	ros::Time::init();
-	ros::Rate sleeper(100);
-	ros::NodeHandle handle;
-	ros::Publisher publisher = handle.advertise<Ls>("scan", 1);
-	ros::Subscriber subscriber = handle.subscribe<Ls>("laser_scan", 1, filter);
-	while(ros::ok())
-	{
-		ros::spinOnce();
-		publisher.publish(ls);
-		sleeper.sleep();
-	}
+    int f, len = 0;
+    float crop = atof(argv[3]);
+    ros::init(argc, argv, "lidar"); ros::NodeHandle handle;
+    ros::Publisher publisher = handle.advertise<LaserScan>(argv[1], 1);
+    ros::Subscriber subscriber = handle.subscribe<LaserScan>(
+        argv[2], 1, [&](LaserScan::ConstPtr data)
+        {
+            init(&len, &f, data, crop);
+            publisher.publish(filter(data, len, f));
+        }
+    );
+	ros::spin();
 	return 0;
 }

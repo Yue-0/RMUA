@@ -7,7 +7,7 @@
     <include file="$(find navigation)/launch/lidar.launch" />
 
     <!-- Start the robot -->
-    <include file="$(find roborts_bringup)/launch/base.launch" />
+    <include file="$(find roborts_base)/launch/base.launch" />
 
     <!-- Run location algorithm -->
     <include file="$(find navigation)/launch/amcl.launch" />
@@ -18,6 +18,6 @@
     <!-- Show Rviz -->
     <node name="rviz" pkg="rviz" type="rviz"
      args="-d $(find navigation)/rviz/rviz.rviz" />
-    <node name="ctrl" pkg="navigation" type="rviz.py" />
+    <node name="ctrl" pkg="navigation" type="mouse.py" />
 
 </launch>

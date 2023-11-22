@@ -11,8 +11,11 @@ This package is the sentry communication package, which defines the custom topic
 ```
 sentry
 ├── msg
+    ├── Points.msg     # Point cloud
     ├── Position.msg   # Robot self information
     └── Positions.msg  # Information about all robots
+├── scripts
+    └── client.py      # This script is not maintained by this repository
 ├── srv
     ├── plan.srv       # Navigation service
     └── RobotID.srv    # Robot ID service type
@@ -24,7 +27,18 @@ sentry
 
 ## 3.Custom topics
 
-### 3.1 [Position.msg](msg/Position.msg)
+### 3.1 [Points.msg](msg/Points.msg)
+
+This topic is used to record the results of fusion of front and rear radar data.
+
+```
+uint64 len    # Number of points
+string frame  # Coordinate system name
+float64[] x   # X coordinate
+float64[] y   # Y coordinate
+```
+
+### 3.2 [Position.msg](msg/Position.msg)
 
 This topic is used for the robot to send data to the sentry, including the robot's ID information and location information.
 
@@ -35,7 +49,7 @@ int32 y      // The y coordinate of the robot in the map coordinate system, unit
 float64 yaw  // The rotation angle of the robot in the map coordinate system, unit: radians
 ```
 
-### 3.2 [Positions.msg](msg/Positions.msg)
+### 3.3 [Positions.msg](msg/Positions.msg)
 
 This topic is used for robot to receive data from sentry, including ID information and location information of all robots on the field.
 

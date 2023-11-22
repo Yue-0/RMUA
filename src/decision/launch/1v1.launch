@@ -1,0 +1,18 @@
+<launch>
+
+    <!-- Robot ID -->
+    <node name="rid" pkg="decision" type="robot_id" args="blue 1" />
+    <node name="sentry" pkg="sentry" type="client.py" args="BLUE1">
+        <remap from="global_position" to="sentry" />
+    </node>
+
+    <!-- Gimbal -->
+    <node name="gimbal" pkg="vision" type="gimbal.py" />
+
+    <!-- Decision -->
+    <include file="$(find decision)/launch/decision.launch" />
+
+    <!-- Navigation -->
+    <include file="$(find navigation)/launch/navigation.launch" />
+
+</launch>

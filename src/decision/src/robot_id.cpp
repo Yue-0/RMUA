@@ -14,7 +14,7 @@ using namespace sentry;
 
 short id, num, color;
 
-bool srv(RobotID::Request &req, RobotID::Response &res)
+bool rid(RobotID::Request &req, RobotID::Response &res)
 {
     if(req.num && req.color)    res.id = id;
     else if(req.num)            res.id = num;
@@ -25,7 +25,7 @@ bool srv(RobotID::Request &req, RobotID::Response &res)
 int main(int argc, char* argv[])
 {
     INIT; ros::Time::init(); ros::NodeHandle nh;
-    ros::ServiceServer _ = nh.advertiseService("robot_id", srv);
+    ros::ServiceServer _ = nh.advertiseService("robot_id", rid);
     if(!strcmp(argv[2], "1"))         num = 1;
     else if(!strcmp(argv[2], "2"))    num = 2;
     else ROS_ERROR(
