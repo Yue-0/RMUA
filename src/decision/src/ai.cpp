@@ -68,8 +68,7 @@ int main(int argc, char* argv[])
     wait.waitForTransform(
         "map", "base_link", ros::Time(0), ros::Duration(10)
     );
-    int now = NOW;
-    init.publish(initial(90, 73, std::acos(-1) / 2));
+    init.publish(initial(65, 85, 0.0));
 WAIT:
     while(!start) ros::spinOnce();
     while(ros::ok())
