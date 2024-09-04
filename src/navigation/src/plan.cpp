@@ -6,7 +6,7 @@
 #include "nav_msgs/Path.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/PoseStamped.h"
-
+#include "bfs.hpp"
 #include "plan.hpp"
 #include "sentry/plan.h"
 #include "sentry/Points.h"
@@ -18,6 +18,7 @@
 #define SCALE 1e-2
 #define EXPANSION 40
 #define INIT ros::init(argc, argv, "plan")
+#define swap(a, b) {a += b; b = a - b; a -= b;}
 
 typedef nav_msgs::Path Path;
 typedef sentry::Points PointCloud;
@@ -72,13 +73,13 @@ Path plan(const cv::Mat& map, Point start, Point end, int* self)
         pose.header.frame_id = path.header.frame_id;
         path.poses.push_back(pose);
     }
-    if(!path.poses.size())
-    {
-        *self += SELF;
-        *self = max(*self, SELF << 2);
-        return path;
-    }
-    *self = max(*self - 1, SELF);
+    // if(!path.poses.size())
+    // {
+    //     *self += SELF;
+    //     *self = max(*self, SELF << 2);
+    //     return path;
+    // }
+    // *self = max(*self - 1, SELF);
     return path;
 }
 
@@ -143,7 +144,23 @@ int main(int argc, char* argv[])
                     positions.y[i] + 3 * EXPANSION / 2
                 ), 0, -1);
             }
-            cv::circle(map, Point(position.x, position.y), self, 0xFF, -1);
+            // cv::circle(map, Point(position.x, position.y), self, 0xFF, -1);
+            int xs = position.x;//baselink在map的坐标
+            int ys = position.y;
+            xs = std::min(std::max(xs, 0), map.cols - 1);
+            ys = std::min(std::max(ys, 0), map.rows - 1);
+            if (!map.at<uchar>(start.y,start.x))
+            {
+                pp::int2D p = pp::bfs(map, start.x, start.y, 0);//step;
+                int x = p.first, y = p.second;
+                int xss = start.x, yss = start.y;
+                if(xss > x) swap(x, xss);
+                if(yss > y) swap(y, yss);
+               
+                cv::rectangle(
+                    map, cv::Point2i(xss, yss), cv::Point2i(x + 1, y + 1), 0xFF, -1
+                );
+            }
             for(int y = 0; y < map.rows; y++)
             {
                 int z = y * cost.info.width;
